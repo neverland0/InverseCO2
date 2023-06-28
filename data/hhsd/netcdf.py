@@ -1,5 +1,6 @@
 import netCDF4 as nc
 import sys
+import numpy as np
 files = sys.argv[1:]
 first = files[0]
 first_file = nc.Dataset(first)
@@ -7,8 +8,8 @@ print(first_file)
 print(first_file.variables.keys())
 print('Hii:')
 print(first_file.variables['foot'][:][:][0])
-#print(first_file.variables['lon'][:])
-#print(first_file.variables['lat'][:])
+print(first_file.variables['lon'][:])
+print(first_file.variables['lat'][:])
 print('shape of Hii =',first_file.variables['foot'][:][:][0].shape)
 print('file_name',"\t\t\t\t\t",'time_dim')
 for f in files:
@@ -16,6 +17,7 @@ for f in files:
     lon = file.variables['lon']
     lat = file.variables['lat']
     time = file.variables['time']
+    print("timesize = ",time.size)
     foot = file.variables['foot']
     time = nc.num2date(time[:],time.units)
     print(f,"\t",time.size)
@@ -35,4 +37,6 @@ d[0]=c_f
 d[1]=c_f
 d=np.r_[d,np.expand_dims(c_f,axis=0)]
 print(d)
-print(d)
+e=d.reshape(-1,1)
+print(e.dtype)
+print(e[0])
