@@ -35,3 +35,4 @@ d[0]=c_f
 d[1]=c_f
 d=np.r_[d,np.expand_dims(c_f,axis=0)]
 print(d)
+print(d)
