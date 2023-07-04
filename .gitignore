@@ -35,3 +35,6 @@
 #python
 *.npy
 *.txt
+
+#netcdf4
+*.nc
