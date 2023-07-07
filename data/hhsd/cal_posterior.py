@@ -25,4 +25,5 @@ print('x_prior',x_prior.shape,'\n',x_prior)
 
 x_posterior = x_prior + p_5
 
+print(x_prior.sum())
 print(x_posterior.sum())

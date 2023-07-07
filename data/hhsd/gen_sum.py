@@ -43,6 +43,9 @@ print("obs num:",len(obs))
 H = np.vstack(H)
 print('H shape=',H.shape)
 #print(H)
+sigma_o =0.392419 
+sigma_b = 1.76503
+para_l = 3.03843
 def get_coor(grid):
     x = grid // lon
     y = grid % lon
@@ -56,6 +59,10 @@ def cal_cov(grid1,grid2,p):
     norm = get_norm(grid1,grid2)
     cov = p[grid1] * p[grid2] * np.exp(-norm/10)
     return cov
+def cal_cov2(grid1,grid2,p):
+    norm = get_norm(grid1,grid2)
+    cov = sigma_b * sigma_b * np.exp(-norm/para_l)
+    return cov
 #print(H)
 #print(H[400])
 y = np.array(obs).flatten().reshape(-1,1)
@@ -65,19 +72,22 @@ print("grids=",grids)
 B = np.zeros((grids,grids))
 R = np.zeros((obs_num,obs_num))
 for i in range(obs_num):
-    R[i][i] = 25
+    #R[i][i] = 25
+    R[i][i] = sigma_o * sigma_o
 for i in range(grids):
     for j in range(grids):
-        B[i][j] = cal_cov(i,j,P.flatten())
+        B[i][j] = cal_cov2(i,j,P.flatten())
 print("writting to file.npy")
 np.save('y.npy',y)
 np.save('H.npy',H)
 np.save('x_prior.npy',x_prior)
 np.save('R.npy',R)
 np.save('B.npy',B)
+np.save('shape.npy',shape)
 print("writting to file.txt")
-np.savetxt('y.txt',y,delimiter=',')
-np.savetxt('H.txt',H,delimiter=',')
-np.savetxt('x_prior.txt',x_prior,delimiter=',')
-np.savetxt('R.txt',R,delimiter=',')
-np.savetxt('B.txt',B,delimiter=',')
+np.savetxt('y.txt',y,delimiter=' ')
+np.savetxt('H.txt',H,delimiter=' ')
+np.savetxt('x_prior.txt',x_prior,delimiter=' ')
+np.savetxt('R.txt',R,delimiter=' ')
+np.savetxt('B.txt',B,delimiter=' ')
+np.savetxt('shape.txt',shape,delimiter=' ')
