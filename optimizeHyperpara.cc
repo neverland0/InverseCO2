@@ -4,12 +4,13 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <nlopt.h>
+#include <math.h>
 
 using namespace std;
 using namespace Eigen;
 
-#define MAXBUFSIZE  ((int) 1e6)
-//#define MAXBUFSIZE  ((int) 1e9)
+//#define MAXBUFSIZE  ((int) 1e6)
+#define MAXBUFSIZE  ((int) 1e9)
 
 template <typename MatrixType>
 inline typename MatrixType::Scalar logdet(const MatrixType& M, bool use_cholesky = false) {
@@ -99,9 +100,11 @@ double likehood(unsigned n, const double *x, double *grad, void *data)
     myData *md = (myData *)data;
 
     double sigma_o = x[0];
-    double sigma_b = x[1];
-    double l = x[2];
-    cout << "x0=" << x[0] << " x1=" << x[1] << " x2=" << x[2] << endl;
+    double r_l = x[1];
+    double sigma_b = x[2];
+    double b_l = x[3];
+
+    cout << "x1,x2,x3,x4=" << x[0] <<" " << x[1] << " " << x[2] << " " << x[3] << endl; 
     
     MatrixXd H = md->H;
     MatrixXd y = md->y;
@@ -111,8 +114,22 @@ double likehood(unsigned n, const double *x, double *grad, void *data)
     int grids_num = md->x_prior.rows();
     int lon = shape(0,0);
     int lat = shape(1,0);
-    MatrixXd R_theta = MatrixXd::Identity(obs_num,obs_num);
-    R_theta = pow(sigma_o,2) * R_theta;
+
+    MatrixXd R_theta = MatrixXd::Zero(obs_num,obs_num);
+    for (int i = 0; i < obs_num; ++i) {
+        for (int j = i;  j < obs_num; ++j) {
+            if(i == j)
+            {
+                R_theta(i,j) = pow(sigma_o,2);
+            }
+            else
+            {
+                double r = abs(i-j);
+                R_theta(i,j) = pow(sigma_o,2) * exp(-2*pow(sin(r/2),2)/pow(r_l,2));
+                R_theta(j,i) = R_theta(i,j);
+            }
+        }
+    }
 
     MatrixXd B_theta = MatrixXd::Zero(grids_num,grids_num);
     for (int i = 0; i < grids_num; ++i) {
@@ -124,28 +141,57 @@ double likehood(unsigned n, const double *x, double *grad, void *data)
             else
             {
                 double r = norm(i,j,lon);
-                B_theta(i,j) = pow(sigma_b,2) * exp(-r/l);
+                B_theta(i,j) = pow(sigma_b,2) * exp(-r/b_l);
                 B_theta(j,i) = B_theta(i,j);
                 //cout << "norm= " << norm(i,j,lon) << " i=" << i << " j=" << j << endl;
             }
         }
     }
 
-    MatrixXd R_sigmao = MatrixXd::Identity(obs_num,obs_num);
-    R_sigmao = sigma_o * 2 * R_sigmao;
+    MatrixXd R_o = MatrixXd::Zero(obs_num,obs_num);
+    for (int i = 0; i < obs_num; ++i) {
+        for (int j = i;  j < obs_num; ++j) {
+            if(i == j)
+            {
+                R_o(i,j) = sigma_o*2;
+            }
+            else
+            {
+                double r = abs(i-j);
+                R_o(i,j) = sigma_o * 2 * exp(-2*pow(sin(r/2),2)/pow(r_l,2));
+                R_o(j,i) = R_o(i,j);
+            }
+        }
+    }
 
-    MatrixXd B_sigmab = MatrixXd::Zero(grids_num,grids_num);
+    MatrixXd R_l = MatrixXd::Zero(obs_num,obs_num);
+    for (int i = 0; i < obs_num; ++i) {
+        for (int j = i;  j < obs_num; ++j) {
+            if(i == j)
+            {
+                R_l(i,j) = pow(sigma_o,2);
+            }
+            else
+            {
+                double r = abs(i-j);
+                R_l(i,j) = 4 * pow(sigma_o,2) * exp(-2*pow(sin(r/2),2)/pow(r_l,2)) * pow(sin(r/2),2) * pow(r_l,-3);
+                R_l(j,i) = R_l(i,j);
+            }
+        }
+    }
+
+    MatrixXd B_b = MatrixXd::Zero(grids_num,grids_num);
     for (int i = 0; i < grids_num; ++i) {
         for (int j = i;  j < grids_num; ++j) {
             if(i == j)
             {
-                B_sigmab(i,j) = sigma_b * 2;
+                B_b(i,j) = sigma_b * 2;
             }
             else
             {
                 double r = norm(i,j,lon);
-                B_sigmab(i,j) = sigma_b * 2 * exp(-r/l);
-                B_sigmab(j,i) = B_theta(i,j);
+                B_b(i,j) = sigma_b * 2 * exp(-r/b_l);
+                B_b(j,i) = B_b(i,j);
             }
         }
     }
@@ -160,8 +206,8 @@ double likehood(unsigned n, const double *x, double *grad, void *data)
             else
             {
                 double r = norm(i,j,lon);
-                B_l(i,j) = pow(sigma_b ,2) * exp(-r/l) * r * pow(l,-2);
-                B_l(j,i) = B_theta(i,j);
+                B_l(i,j) = pow(sigma_b ,2) * exp(-r/b_l) * r * pow(b_l,-2);
+                B_l(j,i) = B_l(i,j);
             }
         }
     }
@@ -173,9 +219,10 @@ double likehood(unsigned n, const double *x, double *grad, void *data)
 
     if (grad) {
     //cout << "test1" << endl;
-        grad[0] = 0.5 * (p1 * R_sigmao).trace();
-        grad[1] = 0.5 * (p1 * H * B_sigmab * H.transpose()).trace();
-        grad[2] = 0.5 * (p1 * H * B_l * H.transpose()).trace();
+        grad[0] = 0.5 * (p1 * R_o).trace();
+        grad[1] = 0.5 * (p1 * R_l).trace();
+        grad[2] = 0.5 * (p1 * H * B_b * H.transpose()).trace();
+        grad[3] = 0.5 * (p1 * H * B_l * H.transpose()).trace();
     }	
 
     MatrixXd y_Hxp = y - H * x_prior;
@@ -199,13 +246,13 @@ int main(int argc, char *argv[])
     cout << "read data from file" << endl;
     myData md = {y,H,x_prior,shape};
     myData *md_p = &md; 
-    double lb[3] = { 0.0, 0.0, 0.0 }; //lower bounds
-    double ub[3] = {5.0 , 5.0, 50.0 }; //upper bounds
+    double lb[4] = { 0.0, 0.0, 0.0, 0.0 }; //lower bounds
+    double ub[4] = {10.0 , 20.0, 10.0, 20.0 }; //upper bounds
      
     // create the optimization problem
     // opaque pointer type
     nlopt_opt opt;
-    opt = nlopt_create(NLOPT_GD_STOGO, 3);
+    opt = nlopt_create(NLOPT_GD_STOGO, 4);
      
     nlopt_set_lower_bounds(opt,lb);
     nlopt_set_upper_bounds(opt,ub);
@@ -216,7 +263,7 @@ int main(int argc, char *argv[])
     nlopt_set_maxtime(opt, 60);
      
     // initial guess
-    double x[3]={2.5,2.5,25.0};
+    double x[4]={5.0,10.0,5.0,10.0};
     double minf;
      
     nlopt_result res=nlopt_optimize(opt, x,&minf);
@@ -226,7 +273,7 @@ int main(int argc, char *argv[])
         printf("nlopt failed!\n");
     }
     else {
-        printf("found minimum at f(%g,%g,%g) = %0.10g\n", x[0], x[1],x[2], minf);
+        printf("found minimum at f(%g,%g,%g,%g) = %0.10g\n", x[0], x[1],x[2],x[3], minf);
     }
 
         return 0;

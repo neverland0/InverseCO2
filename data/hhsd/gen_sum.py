@@ -12,14 +12,10 @@ F = np.genfromtxt(file_flux,delimiter=",",usecols=range(87,97),skip_header=156,s
 P = np.genfromtxt(file_prior,delimiter=",",usecols=range(87,97),skip_header=156,skip_footer=75)
 #lon = np.linspace(112.005,114.495,250)
 #lat = np.linspace(34.005,35.195,120)
-lon = F.shape[0]
-lat = F.shape[1]
 shape = (F.shape)
+lon = shape[0]
+lat = shape[1]
 print("target area has the shape of ",shape)
-print(F)
-print(P)
-print(F.sum())
-print(P.sum())
 #shape of H is (lon,lat)
 #shape = (lon.size,lat.size)
 H_shape = (obs_num,lon*lat)
@@ -32,62 +28,28 @@ for f in files:
     H_p = np.zeros(shape)
     for t in np.arange(time_size):
         Hi = file.variables['foot'][t,86:96,155:175].T
-        #H_sum += Hi
         H_p += Hi
+        #print(H_p)
+        #print(H_p.flatten('C'))
     H.append(H_p.flatten('C'))
     obs_p = np.vdot(H_p,F) + np.random.normal(0,0.5)
     obs.append(obs_p)
-print("obs:",obs)
-print("obs num:",len(obs))
 
 H = np.vstack(H)
-print('H shape=',H.shape)
-#print(H)
-sigma_o =0.392419 
-sigma_b = 1.76503
-para_l = 3.03843
-def get_coor(grid):
-    x = grid // lon
-    y = grid % lon
-    return x,y
-def get_norm(grid1,grid2):
-    x1,y1 = get_coor(grid1)
-    x2,y2 = get_coor(grid2)
-    ret = np.sqrt(np.square(x1-x2)+np.square(y1-y2))
-    return ret
-def cal_cov(grid1,grid2,p):
-    norm = get_norm(grid1,grid2)
-    cov = p[grid1] * p[grid2] * np.exp(-norm/10)
-    return cov
-def cal_cov2(grid1,grid2,p):
-    norm = get_norm(grid1,grid2)
-    cov = sigma_b * sigma_b * np.exp(-norm/para_l)
-    return cov
-#print(H)
-#print(H[400])
+
 y = np.array(obs).flatten().reshape(-1,1)
 x_prior = P.flatten().reshape(-1,1)
-grids = lon * lat
-print("grids=",grids)
-B = np.zeros((grids,grids))
-R = np.zeros((obs_num,obs_num))
-for i in range(obs_num):
-    #R[i][i] = 25
-    R[i][i] = sigma_o * sigma_o
-for i in range(grids):
-    for j in range(grids):
-        B[i][j] = cal_cov2(i,j,P.flatten())
-print("writting to file.npy")
+flux = F.flatten().reshape(-1,1)
+#grids = lon * lat
 np.save('y.npy',y)
 np.save('H.npy',H)
 np.save('x_prior.npy',x_prior)
-np.save('R.npy',R)
-np.save('B.npy',B)
 np.save('shape.npy',shape)
-print("writting to file.txt")
+np.save('flux.npy',flux)
+print("writting to file.npy")
 np.savetxt('y.txt',y,delimiter=' ')
 np.savetxt('H.txt',H,delimiter=' ')
 np.savetxt('x_prior.txt',x_prior,delimiter=' ')
-np.savetxt('R.txt',R,delimiter=' ')
-np.savetxt('B.txt',B,delimiter=' ')
 np.savetxt('shape.txt',shape,delimiter=' ')
+np.savetxt('flux.txt',flux,delimiter=' ')
+print("writting to file.txt")
