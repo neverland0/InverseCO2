@@ -2,10 +2,10 @@ import numpy as np
 np.set_printoptions(suppress=True)
 
 
-sigma_o = 5
-r_l = 2
-sigma_b = 5
-b_l = 10
+sigma_o = 1.96714
+r_l = 10.9994
+sigma_b = 4.99585
+b_l = 9.99087
 
 s = np.load('shape.npy')
 lon = s[0]
@@ -48,26 +48,26 @@ B = np.zeros((grids,grids))
 R = np.zeros((obs_num,obs_num))
 flux = np.load('flux.npy')
 
-#for i in range(obs_num):
-#    R[i][i] = 25
-    #R[i][i] = sigma_o * sigma_o
 for i in range(obs_num):
-    for j in range(obs_num):
-        R[i][j] = cal_cov_r2(i,j)
+    R[i][i] = 25
+    #R[i][i] = sigma_o * sigma_o
+#for i in range(obs_num):
+#    for j in range(obs_num):
+#        R[i][j] = cal_cov_r2(i,j)
 for i in range(grids):
     for j in range(grids):
-        #B[i][j] = cal_cov(i,j,x_prior)
-        B[i][j] = cal_cov2(i,j)
-print("R:")
-print(R)
-print("B:")
-print(B)
+        B[i][j] = cal_cov(i,j,x_prior)
+        #B[i][j] = cal_cov2(i,j)
+#print("R:")
+#print(R)
+#print("B:")
+#print(B)
 BHt = np.dot(B,H.T)
 HBHt = np.dot(np.dot(H,B),H.T)
 Hx_prior = np.dot(H,x_prior)
-print('BHT:',BHt.shape,'\n',BHt)
-print('HBHT:',HBHt.shape,'\n',HBHt)
-print('Hx_prior:',Hx_prior.shape,'\n',Hx_prior)
+#print('BHT:',BHt.shape,'\n',BHt)
+#print('HBHT:',HBHt.shape,'\n',HBHt)
+#print('Hx_prior:',Hx_prior.shape,'\n',Hx_prior)
 
 p_1 = HBHt+R
 p_2 = np.linalg.inv(p_1)
@@ -75,13 +75,13 @@ p_3 = y-Hx_prior
 p_4 = np.dot(BHt,p_2)
 p_5 = np.dot(p_4,p_3)
 
-print('p_3:',p_3.shape,'\n',p_3)
-print('p_5:',p_5.shape,'\n',p_5)
-print('x_prior',x_prior.shape,'\n',x_prior)
+#print('p_3:',p_3.shape,'\n',p_3)
+#print('p_5:',p_5.shape,'\n',p_5)
+#print('x_prior',x_prior.shape,'\n',x_prior)
 
 x_posterior = x_prior + p_5
 
-print(x_prior.sum())
+print("x_prior = ",x_prior.sum())
 print("posterior = ",x_posterior.sum())
 
 n = flux.shape[0]
@@ -96,11 +96,11 @@ r2 = 1- se / sst
 
 print("rmse = ",rmse," r2 = ",r2)
 
-print("x_prior")
+#print("x_prior")
 #print(x_prior)
-print("flux")
+#print("flux")
 #print(flux)
-print("x_posterior")
-print(x_posterior)
-print("flux:")
+#print("x_posterior")
+#print(x_posterior)
+print("true flux:")
 print(flux.sum())

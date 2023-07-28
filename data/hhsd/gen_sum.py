@@ -7,8 +7,10 @@ file_flux = '../flux.csv'
 file_prior = '../prior.csv'
 obs_num = len(files)
 print(obs_num," .nc file has been read")
-start_point = (88,157)
+start_point = (78,147)
 end_point = (97,176)
+#start_point = (88,157)
+#end_point = (97,176)
 #F = np.genfromtxt(file_flux,delimiter=",",usecols=range(1,121),skip_header=1)
 #F1 = np.genfromtxt(file_flux,delimiter=",",usecols=range(87,97),skip_header=156,skip_footer=75)
 #P1 = np.genfromtxt(file_prior,delimiter=",",usecols=range(87,97),skip_header=156,skip_footer=75)
