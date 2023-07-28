@@ -7,9 +7,17 @@ file_flux = '../flux.csv'
 file_prior = '../prior.csv'
 obs_num = len(files)
 print(obs_num," .nc file has been read")
+start_point = (88,157)
+end_point = (97,176)
 #F = np.genfromtxt(file_flux,delimiter=",",usecols=range(1,121),skip_header=1)
-F = np.genfromtxt(file_flux,delimiter=",",usecols=range(87,97),skip_header=156,skip_footer=75)
-P = np.genfromtxt(file_prior,delimiter=",",usecols=range(87,97),skip_header=156,skip_footer=75)
+#F1 = np.genfromtxt(file_flux,delimiter=",",usecols=range(87,97),skip_header=156,skip_footer=75)
+#P1 = np.genfromtxt(file_prior,delimiter=",",usecols=range(87,97),skip_header=156,skip_footer=75)
+x1 = start_point[0]
+y1 = start_point[1]
+x2 = end_point[0]
+y2 = end_point[1]
+F = np.genfromtxt(file_flux,delimiter=",",usecols=range(x1-1,x2),skip_header=y1-1,skip_footer=251-y2)
+P = np.genfromtxt(file_prior,delimiter=",",usecols=range(x1-1,x2),skip_header=y1-1,skip_footer=251-y2)
 #lon = np.linspace(112.005,114.495,250)
 #lat = np.linspace(34.005,35.195,120)
 shape = (F.shape)
@@ -27,7 +35,7 @@ for f in files:
     time_size = time.size
     H_p = np.zeros(shape)
     for t in np.arange(time_size):
-        Hi = file.variables['foot'][t,86:96,155:175].T
+        Hi = file.variables['foot'][t,x1-2:x2-1,y1-2:y2-1].T
         H_p += Hi
         #print(H_p)
         #print(H_p.flatten('C'))
