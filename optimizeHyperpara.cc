@@ -41,6 +41,16 @@ inline typename MatrixType::Scalar logdet(const MatrixType& M, bool use_cholesky
   return ld;
 }
 
+void writeMatrix(MatrixXd &Mat, const char *filename)
+{
+    ofstream outfile;
+    outfile.open(filename, ios::trunc);
+
+    outfile << Mat;
+    outfile.close();
+    return;
+}
+
 MatrixXd readMatrix(const char *filename)
     {
     int cols = 0, rows = 0;
@@ -238,7 +248,7 @@ int main(int argc, char *argv[])
     nlopt_set_min_objective(opt, likehood,md_p);
      
     //nlopt_set_xtol_rel(opt, 1e-4);
-    nlopt_set_maxtime(opt, 300);
+    nlopt_set_maxtime(opt, 3600);
      
     // initial guess
     double x[4]={10.0,20.0,10.0,20.0};
@@ -272,6 +282,9 @@ int main(int argc, char *argv[])
     cout << "posterior : "<<endl << posterior << endl;
     cout << "prior : "<<endl << x_prior << endl;
     cout << "true flux : "<<endl << flux << endl;
+    writeMatrix(posterior,"posterior.txt");
+    writeMatrix(x_prior,"x_prior.txt");
+    writeMatrix(flux,"flux.txt");
     cout << "posterior sum = " << posterior.sum() << endl;
     cout << "prior sum = " << x_prior.sum() << endl;
     cout << "true flux sum = " << flux.sum() << endl;

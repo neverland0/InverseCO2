@@ -83,6 +83,7 @@ x_posterior = x_prior + p_5
 
 print("x_prior = ",x_prior.sum())
 print("posterior = ",x_posterior.sum())
+np.savetxt('default.txt',x_posterior,delimiter=' ',fmt='%.05f')
 
 n = flux.shape[0]
 x_diff = x_posterior - flux
