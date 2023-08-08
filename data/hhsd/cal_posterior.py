@@ -2,10 +2,10 @@ import numpy as np
 np.set_printoptions(suppress=True)
 
 
-sigma_o = 1.96714
-r_l = 10.9994
-sigma_b = 4.99585
-b_l = 9.99087
+#sigma_o = 1.96714
+#r_l = 10.9994
+#sigma_b = 4.99585
+#b_l = 9.99087
 
 s = np.load('shape.npy')
 lon = s[0]
@@ -49,7 +49,7 @@ R = np.zeros((obs_num,obs_num))
 flux = np.load('flux.npy')
 
 for i in range(obs_num):
-    R[i][i] = 25
+    R[i][i] = 20
     #R[i][i] = sigma_o * sigma_o
 #for i in range(obs_num):
 #    for j in range(obs_num):

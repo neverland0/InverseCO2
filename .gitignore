@@ -35,7 +35,19 @@ optPara
 
 #python
 *.npy
-*.txt
+
 
 #netcdf4
 *.nc
+
+#Zone.Identifier
+**/*Zone.Identifier
+
+#txt
+H.txt
+default.txt
+flux.txt
+shape.txt
+x_prior.txt
+y.txt
+posterior.txt
