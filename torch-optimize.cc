@@ -5,6 +5,7 @@
 #include <cmath>
 #include <ctime>
 #include <nlopt.h>
+#include <nlopt.hpp>
 #include <math.h>
 #include <assert.h>
 #include <torch/torch.h>
@@ -19,6 +20,126 @@ typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> M
 static int lon;
 static int lat;
 static int counts = 0;
+static int p1_num;
+static int p2_num;
+
+static int obs_num;
+static int grids_num;
+MatrixXdr y;
+MatrixXdr H;
+MatrixXdr x_prior;
+
+
+class CovfunBase
+{
+    protected:
+        vector<double> para;
+        int dim;
+        vector<MatrixXdr*> vec_mat;
+        bool isR;
+    public:
+        CovfunBase(vector<double> x, int n,bool isR):para(x),dim(n),isR(isR)
+        {
+            for(int i=0;i<para.size()+1;i++)
+            {
+                vec_mat.push_back(new MatrixXdr(dim,dim));
+            }
+        }
+        double norm(int i, int j, int lon)
+        {
+            int x1 = i / lon;
+            int y1 = i % lon;
+            int x2 = j / lon;
+            int y2 = j % lon;
+
+            return sqrt(pow(x1-x2,2)+pow(y1-y2,2));
+        }
+        void gen_matrix(MatrixXdr &Mat, int index)
+        {
+            for (int i = 0; i < dim; ++i) {
+                for (int j = i;  j < dim; ++j) {
+                    if(i == j)
+                    {
+                        Mat(i,j) = cov_pd(index,0,para);
+                    }
+                    else
+                    {
+                        double r;
+                        if(isR)
+                        {
+                            r = abs(i-j);
+                        }
+                        else
+                        {
+                            r = norm(i,j,lon);
+                        }
+                        Mat(i,j) = cov_pd(index,r,para);
+                        Mat(j,i) = Mat(i,j);
+                    }
+                }
+            }
+        }
+        MatrixXdr* gen_covpd_fun(int i)
+        {
+            MatrixXdr &mat = *vec_mat[i];
+            gen_matrix(mat,i);
+            return &mat;
+        }
+
+
+        virtual double cov_pd(int i,double r,vector<double> para)=0;
+
+        //virtual double pd(int i,double r,vector<double> para)=0;
+
+        virtual ~CovfunBase()
+        {
+            for(MatrixXdr* b : vec_mat)
+            {
+                delete b;
+            }
+        }
+    private:
+};
+
+class exp_Covfun : public CovfunBase
+{
+    public:
+    exp_Covfun(vector<double> x, int n,bool isR):CovfunBase(x,n,isR)
+    {
+
+    }
+
+    double cov_pd(int i,double r, vector<double> para) override
+    {
+        double sigma = para[0];
+        double l = para[1];
+        if(0==i)//cov fun
+        {
+            if(0==r)
+            {
+                return pow(sigma,2);
+            }
+            return pow(sigma,2) * exp(-r/l);
+        }
+        else if(1==i)//cov pd to para 1 -> sigma
+        {
+            if(0==r)
+            {
+                return sigma*2;
+            }
+            return sigma * 2 * exp(-r/l);
+        }else if(2==i)//cov pd to para 2 -> l
+        {
+            if(0==r)
+            {
+               return pow(sigma,2);
+            }
+            return pow(sigma,2) * exp(-r/l) * r * pow(l,-2);
+        }
+        return 0;
+    }
+
+};
 /*
 template <typename MatrixType>
 inline typename MatrixType::Scalar logdet(const MatrixType& M, bool use_cholesky = false) {
@@ -95,14 +216,13 @@ MatrixXdr readMatrix(const string &filename)
 
     return result;
     };
-
+/*
 typedef struct{
     MatrixXdr y;
     MatrixXdr H;
     MatrixXdr x_prior;
     MatrixXdr shape;
 }myData;
-
 double norm(int i, int j, int lon)
 {
     int x1 = i / lon;
@@ -167,6 +287,7 @@ void gen_cov_matrix(MatrixXdr &Mat, double sigma, double l,cf_pointer cfp, bool 
     }
     
 }
+*/
 
 void eigen2torch(MatrixXdr &eigenMat, torch::Tensor &torchMat)
 {
@@ -180,62 +301,57 @@ void eigen2torch(MatrixXdr &eigenMat, torch::Tensor &torchMat)
     return;
 }
 
-double likehood(unsigned n, const double *x, double *grad, void *data)
+double likehood(const std::vector<double> &x, std::vector<double> &grad, void *data)
 {
-    myData *md = (myData *)data;
-
+    //myData *md = (myData *)data;
+/*
     double sigma_o = x[0];
     double r_l = x[1];
     double sigma_b = x[2];
     double b_l = x[3];
-
+*/
     cout << "x1,x2,x3,x4=" << x[0] <<" " << x[1] << " " << x[2] << " " << x[3] << endl; 
+    cout << "x = ";
+    for(auto i : x)
+    {
+        cout << i << " ";
+    }
+    cout << endl;
+    //MatrixXdr H = md->H;
+    //MatrixXdr y = md->y;
+    //MatrixXdr x_prior = md->x_prior;
+    //MatrixXdr shape = md->shape;
+
+    //torch::TensorOptions options(torch::kCUDA);
+    CovfunBase *cfb_r = new exp_Covfun(x,obs_num,true); 
+    CovfunBase *cfb_b = new exp_Covfun(x,grids_num,false); 
     
-    MatrixXdr H = md->H;
-    MatrixXdr y = md->y;
-    MatrixXdr x_prior = md->x_prior;
-    MatrixXdr shape = md->shape;
-    int obs_num = md->y.rows();
-    int grids_num = md->x_prior.rows();
-    lon = shape(0,0);
-    lat = shape(1,0);
+    MatrixXdr &R_theta = *(cfb_r->gen_covpd_fun(0));
+    MatrixXdr &B_theta = *(cfb_b->gen_covpd_fun(0));
+    //MatrixXdr R_theta = MatrixXdr::Zero(obs_num,obs_num);
+    //gen_cov_matrix(R_theta,sigma_o,r_l,exponential_cf,true,false);
 
-    torch::TensorOptions options(torch::kCUDA);
-    
-    cout << "1" << endl;
-    MatrixXdr R_theta = MatrixXdr::Zero(obs_num,obs_num);
-    gen_cov_matrix(R_theta,sigma_o,r_l,exponential_cf,true,false);
-    cout << "2" << endl;
+    //MatrixXdr B_theta = MatrixXdr::Zero(grids_num,grids_num);
+    //gen_cov_matrix(B_theta,sigma_b,b_l,exponential_cf,false,false);
 
-    MatrixXdr B_theta = MatrixXdr::Zero(grids_num,grids_num);
-    gen_cov_matrix(B_theta,sigma_b,b_l,exponential_cf,false,false);
-    cout << "3" << endl;
+    //MatrixXdr R_o = MatrixXdr::Zero(obs_num,obs_num);
+    //gen_cov_matrix(R_o,sigma_o,r_l,exponential_cf_sigma,true,true);
 
-    MatrixXdr R_o = MatrixXdr::Zero(obs_num,obs_num);
-    gen_cov_matrix(R_o,sigma_o,r_l,exponential_cf_sigma,true,true);
-    cout << "4" << endl;
+    //MatrixXdr R_l = MatrixXdr::Zero(obs_num,obs_num);
+    //gen_cov_matrix(R_l,sigma_o,r_l,exponential_cf_l,true,false);
 
-    MatrixXdr R_l = MatrixXdr::Zero(obs_num,obs_num);
-    gen_cov_matrix(R_l,sigma_o,r_l,exponential_cf_l,true,false);
-    cout << "5" << endl;
+    //MatrixXdr B_b = MatrixXdr::Zero(grids_num,grids_num);
+    //gen_cov_matrix(B_b,sigma_b,b_l,exponential_cf_sigma,false,true);
 
-    MatrixXdr B_b = MatrixXdr::Zero(grids_num,grids_num);
-    gen_cov_matrix(B_b,sigma_b,b_l,exponential_cf_sigma,false,true);
-    cout << "6" << endl;
-
-    MatrixXdr B_l = MatrixXdr::Zero(grids_num,grids_num);
-    gen_cov_matrix(B_l,sigma_b,b_l,exponential_cf_l,false,false);
-    cout << "7" << endl;
+    //MatrixXdr B_l = MatrixXdr::Zero(grids_num,grids_num);
+    //gen_cov_matrix(B_l,sigma_b,b_l,exponential_cf_l,false,false);
 
     torch::Tensor _R_theta = torch::zeros({R_theta.rows(),R_theta.cols()}, torch::kDouble);
-    cout << "7a" << endl;
     eigen2torch(R_theta, _R_theta);
-    //cout << _R_theta <<endl;
 
-    cout << "7b" << endl;
     torch::Tensor _B_theta = torch::zeros({B_theta.rows(),B_theta.cols()});
     eigen2torch(B_theta, _B_theta);
-    
+    /*
     cout << "7c" << endl;
     torch::Tensor _R_o = torch::zeros({R_o.rows(),R_o.cols()}, torch::kDouble);
     eigen2torch(R_o, _R_o);
@@ -249,68 +365,67 @@ double likehood(unsigned n, const double *x, double *grad, void *data)
     torch::Tensor _B_l = torch::zeros({B_l.rows(),B_l.cols()}, torch::kDouble);
     eigen2torch(B_l, _B_l);
     cout << "7g" << endl;
-
+    */
     torch::Tensor _H = torch::zeros({H.rows(),H.cols()});
-    cout << "71" << endl;
     //cout << H << endl;
     eigen2torch(H, _H);
     //cout << _H << endl;
     //cout << _H << endl;
 
     torch::Tensor _y = torch::zeros({y.rows(),y.cols()}, torch::kDouble);
-    cout << "73" << endl;
     eigen2torch(y, _y);
-    cout << "74" << endl;
 
     torch::Tensor _x_prior = torch::zeros({x_prior.rows(),x_prior.cols()}, torch::kDouble);
-    cout << "75" << endl;
     eigen2torch(x_prior, _x_prior);
-    cout << "76" << endl;
 
     clock_t start = clock();
-    cout << "77" << endl;
     torch::Tensor _tem1 = torch::mm(_H , _B_theta);
-    //cout <<  _tem1 << endl;
-    cout << "78" << endl;
     torch::Tensor _tem2 = torch::mm(_tem1, _H.t());
-    cout << "79" << endl;
     torch::Tensor _D_theta = _R_theta + _tem2;
     clock_t end = clock();
     cout << "乘法花费了" << (double)(end - start) / CLOCKS_PER_SEC << "秒" << endl;
-    cout << "8" << endl;
     start = clock();
     torch::Tensor _D_inv = torch::inverse(_D_theta);
     end = clock();
     cout << "求逆花费了" << (double)(end - start) / CLOCKS_PER_SEC << "秒" << endl;
-    cout << "9" << endl;
     torch::Tensor _alpha = torch::mm(_D_inv , _y);
-    cout << "10" << endl;
-    torch::Tensor _p1 = _D_inv - torch::mm(_alpha , _alpha.t());
-    cout << "11" << endl;
+    torch::Tensor _term1 = _D_inv - torch::mm(_alpha , _alpha.t());
 
-    if (grad) {
+    if (grad.size()>0) {
     //cout << "test1" << endl;
-        grad[0] = torch::trace(_p1 * _R_o).item().to<double>() * 0.5;
+    for (int i = 0; i < p1_num; ++i) {
+        torch::Tensor _R = torch::zeros({R_theta.rows(),R_theta.cols()}, torch::kDouble);
+        eigen2torch(*(cfb_r->gen_covpd_fun(i)), _R);
+        grad[i] = torch::trace(_term1 * _R).item().to<double>() * 0.5;
+    }
+    for (int i = 0; i < p2_num; ++i) {
+        int index = i + p1_num;
+        torch::Tensor _B = torch::zeros({B_theta.rows(),B_theta.cols()}, torch::kDouble);
+        eigen2torch(*(cfb_b->gen_covpd_fun(index)), _B);
+        grad[index] = torch::trace(torch::mm(torch::mm(torch::mm(_term1 , _H) , _B) , _H.t())).item().to<double>() * 0.5;
+    }
+    /*
+        grad[0] = torch::trace(_term1 * _R_o).item().to<double>() * 0.5;
     cout << "12" << endl;
-        grad[1] = torch::trace(_p1 * _R_l).item().to<double>() * 0.5;
+        grad[1] = torch::trace(_term1 * _R_l).item().to<double>() * 0.5;
     cout << "13" << endl;
-        grad[2] = torch::trace(torch::mm(torch::mm(torch::mm(_p1 , _H) , _B_b) , _H.t())).item().to<double>() * 0.5;
+        grad[2] = torch::trace(torch::mm(torch::mm(torch::mm(_term1 , _H) , _B_b) , _H.t())).item().to<double>() * 0.5;
     cout << "14" << endl;
-        grad[3] = torch::trace(torch::mm(torch::mm(torch::mm(_p1 , _H) , _B_l) , _H.t())).item().to<double>() * 0.5;
+        grad[3] = torch::trace(torch::mm(torch::mm(torch::mm(_term1 , _H) , _B_l) , _H.t())).item().to<double>() * 0.5;
+        */
     }	
 
-    cout << "15" << endl;
     torch::Tensor _y_Hxp = _y - torch::mm(_H , _x_prior);
 
-    cout << "16" << endl;
     torch::Tensor _ret1 = torch::logdet(_D_theta);
-    cout << "17" << endl;
     torch::Tensor _ret2 = torch::mm(torch::mm(_y_Hxp.t() , _D_inv) , _y_Hxp);
     double ret = _ret1.item().to<double>() + _ret2.item().to<double>();
     cout << "ret1 = " << _ret1.item().to<double>() << endl;
     cout << "ret2 = " << _ret2.item().to<double>() << endl;
     cout << "ret = " << ret << endl;
     counts++;
+    delete cfb_r;
+    delete cfb_b;
     return ret;
     
 }
@@ -319,45 +434,95 @@ double likehood(unsigned n, const double *x, double *grad, void *data)
 int main(int argc, char *argv[])
 {
     string pre = "/home/akagi/InverseCO2/data/hhsd/";
-    MatrixXdr y = readMatrix(pre + "y.txt");
-    MatrixXdr H = readMatrix(pre + "H.txt");
-    MatrixXdr x_prior = readMatrix(pre + "x_prior.txt");
+    y = readMatrix(pre + "y.txt");
+    H = readMatrix(pre + "H.txt");
+    x_prior = readMatrix(pre + "x_prior.txt");
     MatrixXdr flux = readMatrix(pre + "flux.txt");
     MatrixXdr shape = readMatrix(pre + "shape.txt");
+    lon = shape(0,0);
+    lat = shape(1,0);
     cout << "read data from file" << endl;
-    myData md = {y,H,x_prior,shape};
-    myData *md_p = &md; 
-    double lb[4] = { 0.0, 0.0, 0.0, 0.0 }; //lower bounds
-    double ub[4] = {20.0 , 40.0, 20.0, 40.0 }; //upper bounds
-     
+    //myData md = {y,H,x_prior,shape};
+    //myData *md_p = &md; 
+    vector<double> lb(4, 0.0 ); //lower bounds
+    vector<double> ub={20.0 , 40.0, 20.0, 40.0}; //upper bounds
+    int p_num = lb.size();
+    p1_num = 2;//paras num of R
+    p2_num = p_num - p1_num;//paras num of R
+    obs_num = y.rows();
+    grids_num = x_prior.rows();
     // create the optimization problem
     // opaque pointer type
-    nlopt_opt opt;
-    opt = nlopt_create(NLOPT_GN_ISRES, 4);
+    nlopt::opt opt(nlopt::GN_ISRES, p_num);
     //opt = nlopt_create(NLOPT_GD_STOGO, 4);
      
-    nlopt_set_lower_bounds(opt,lb);
-    nlopt_set_upper_bounds(opt,ub);
+    opt.set_lower_bounds(lb);
+    opt.set_upper_bounds(ub);
      
-    nlopt_set_min_objective(opt, likehood,md_p);
+    opt.set_min_objective(likehood,NULL);
      
     //nlopt_set_xtol_rel(opt, 1e-4);
-    nlopt_set_maxtime(opt, 60);
+    opt.set_maxtime(60);
      
     // initial guess
-    double x[4]={10.0,20.0,10.0,20.0};
+    vector<double> x={10.0,20.0,10.0,20.0};
     double minf;
      
-    nlopt_result res=nlopt_optimize(opt, x,&minf);
+    nlopt::result res=opt.optimize(x,minf);
      
      
     if (res < 0) {
-        printf("nlopt failed!\n");
+        cout << "nlopt failed!" << endl;
     }
     else {
         printf("found minimum at f(%g,%g,%g,%g) = %0.10g\n", x[0], x[1],x[2],x[3], minf);
+        cout << "found minimum at f(" ;
+        for(auto i:x)
+        {
+            cout << i << " ";
+        }
+        cout << ") = " << minf << endl;
         cout << "optim times :" << counts << endl;
     }
+    
+    CovfunBase *cfb_r = new exp_Covfun(x,obs_num,true); 
+    CovfunBase *cfb_b = new exp_Covfun(x,grids_num,false); 
+    
+    MatrixXdr &R_theta = *(cfb_r->gen_covpd_fun(0));
+    MatrixXdr &B_theta = *(cfb_b->gen_covpd_fun(0));
+    torch::Tensor _R_theta = torch::zeros({R_theta.rows(),R_theta.cols()}, torch::kDouble);
+    eigen2torch(R_theta, _R_theta);
+
+    torch::Tensor _B_theta = torch::zeros({B_theta.rows(),B_theta.cols()});
+    eigen2torch(B_theta, _B_theta);
+    
+    torch::Tensor _y = torch::zeros({y.rows(),y.cols()});
+    torch::Tensor _H = torch::zeros({H.rows(),H.cols()});
+    torch::Tensor _x_prior = torch::zeros({x_prior.rows(),x_prior.cols()});
+    eigen2torch(y, _y);
+    eigen2torch(H, _H);
+    eigen2torch(x_prior, _x_prior);
+
+    torch::Tensor _tem1 = torch::mm(_H , _B_theta);
+    torch::Tensor _tem2 = torch::mm(_tem1, _H.t());
+    torch::Tensor _D_theta = _R_theta + _tem2;
+    torch::Tensor _D_inv = torch::inverse(_D_theta);
+
+    torch::Tensor _y_Hxp = _y - torch::mm(_H , _x_prior);
+    torch::Tensor _x_posterior= _x_prior + torch::mm(torch::mm(torch::mm(_B_theta , _H.t()) , _D_inv) , _y_Hxp);
+    double posterior = torch::sum(_x_posterior).item().to<double>();
+
+    torch::Tensor _y_hat = torch::mm(_H , _x_posterior);
+    torch::Tensor _y_diff = (_y - _y_hat).view({-1});
+
+    double se = torch::dot(_y_diff,_y_diff).item().to<double>();
+    double rmse = sqrt(se/obs_num);
+
+    cout << "posterior sum = " << posterior << endl;
+    cout << "prior sum = " << x_prior.sum() << endl;
+    cout << "true flux sum = " << flux.sum() << endl;
+    cout << "rmse = " << rmse << endl;
+/*
     double sigma_o = x[0];
     double r_l = x[1];
     double sigma_b = x[2];
@@ -378,14 +543,9 @@ int main(int argc, char *argv[])
     VectorXd diff = posterior - flux;
     float se = diff.dot(diff);
     float rmse = sqrt(se/grids_num);
+*/
 
-
-    writeMatrix(posterior,"posterior.txt");
-    writeMatrix(x_prior,"x_prior.txt");
-    writeMatrix(flux,"flux.txt");
-    cout << "posterior sum = " << posterior.sum() << endl;
-    cout << "prior sum = " << x_prior.sum() << endl;
-    cout << "true flux sum = " << flux.sum() << endl;
-    cout << "rmse = " << rmse << endl;
+    delete cfb_r;
+    delete cfb_b;
         return 0;
 }

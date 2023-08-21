@@ -1501,3 +1501,82 @@ events:
         8.6 
       exitCode: 0
 ...
+
+---
+events:
+  -
+    kind: "try_run-v1"
+    backtrace:
+      - "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Caffe2/public/cuda.cmake:81 (try_run)"
+      - "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Caffe2/Caffe2Config.cmake:88 (include)"
+      - "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:68 (find_package)"
+      - "CMakeLists.txt:7 (find_package)"
+    directories:
+      source: "/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp"
+      binary: "/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Caffe2/public/../Modules_CUDA_fix"
+    buildResult:
+      variable: "compile_result"
+      cached: true
+      stdout: |
+        Change Dir: '/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp'
+        
+        Run Build Command(s): /home/akagi/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_5d2f8/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_5d2f8.dir/build.make CMakeFiles/cmTC_5d2f8.dir/build
+        gmake[1]: Entering directory '/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp'
+        Building CXX object CMakeFiles/cmTC_5d2f8.dir/detect_cuda_version.cc.o
+        /usr/bin/c++  -I/usr/local/cuda/include  -o CMakeFiles/cmTC_5d2f8.dir/detect_cuda_version.cc.o -c /home/akagi/InverseCO2/build/detect_cuda_version.cc
+        Linking CXX executable cmTC_5d2f8
+        /home/akagi/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5d2f8.dir/link.txt --verbose=1
+        /usr/bin/c++ -rdynamic CMakeFiles/cmTC_5d2f8.dir/detect_cuda_version.cc.o -o cmTC_5d2f8  -Wl,-rpath,/usr/local/cuda/lib64 /usr/local/cuda/lib64/libcudart.so 
+        gmake[1]: Leaving directory '/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp'
+        
+      exitCode: 0
+    runResult:
+      variable: "run_result"
+      cached: true
+      stdout: |
+        11.7
+      exitCode: 0
+  -
+    kind: "try_run-v1"
+    backtrace:
+      - "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Caffe2/Modules_CUDA_fix/upstream/FindCUDA/select_compute_arch.cmake:106 (try_run)"
+      - "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Caffe2/Modules_CUDA_fix/upstream/FindCUDA/select_compute_arch.cmake:166 (CUDA_DETECT_INSTALLED_GPUS)"
+      - "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Caffe2/public/utils.cmake:401 (cuda_select_nvcc_arch_flags)"
+      - "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Caffe2/public/cuda.cmake:362 (torch_cuda_get_nvcc_gencode_flag)"
+      - "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Caffe2/Caffe2Config.cmake:88 (include)"
+      - "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:68 (find_package)"
+      - "CMakeLists.txt:7 (find_package)"
+    directories:
+      source: "/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp"
+      binary: "/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp"
+    cmakeVariables:
+      CMAKE_CUDA_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/akagi/.local/lib/python3.10/site-packages/torch/share/cmake/Caffe2/public/../Modules_CUDA_fix"
+    buildResult:
+      variable: "compile_result"
+      cached: true
+      stdout: |
+        Change Dir: '/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp'
+        
+        Run Build Command(s): /home/akagi/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_27122/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_27122.dir/build.make CMakeFiles/cmTC_27122.dir/build
+        gmake[1]: Entering directory '/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp'
+        Building CUDA object CMakeFiles/cmTC_27122.dir/detect_cuda_compute_capabilities.cu.o
+        /usr/local/cuda/bin/nvcc -forward-unknown-to-host-compiler    -MD -MT CMakeFiles/cmTC_27122.dir/detect_cuda_compute_capabilities.cu.o -MF CMakeFiles/cmTC_27122.dir/detect_cuda_compute_capabilities.cu.o.d -x cu -c /home/akagi/InverseCO2/build/detect_cuda_compute_capabilities.cu -o CMakeFiles/cmTC_27122.dir/detect_cuda_compute_capabilities.cu.o
+        Linking CUDA executable cmTC_27122
+        /home/akagi/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_27122.dir/link.txt --verbose=1
+        /usr/bin/g++ @CMakeFiles/cmTC_27122.dir/objects1.rsp -o cmTC_27122 @CMakeFiles/cmTC_27122.dir/linkLibs.rsp -L"/usr/local/cuda/targets/x86_64-linux/lib/stubs" -L"/usr/local/cuda/targets/x86_64-linux/lib"
+        gmake[1]: Leaving directory '/home/akagi/InverseCO2/build/CMakeFiles/CMakeTmp'
+        
+      exitCode: 0
+    runResult:
+      variable: "run_result"
+      cached: true
+      stdout: |
+        8.6 
+      exitCode: 0
+...

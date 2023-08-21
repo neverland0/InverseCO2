@@ -4975,4 +4975,5 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o
  /usr/lib/gcc/x86_64-linux-gnu/11/include/xsavesintrin.h
  /usr/lib/gcc/x86_64-linux-gnu/11/include/xtestintrin.h
  /usr/local/include/nlopt.h
+ /usr/local/include/nlopt.hpp
 

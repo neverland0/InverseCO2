@@ -4973,7 +4973,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
   /usr/lib/gcc/x86_64-linux-gnu/11/include/xsaveoptintrin.h \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/xsavesintrin.h \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/xtestintrin.h \
-  /usr/local/include/nlopt.h
+  /usr/local/include/nlopt.h \
+  /usr/local/include/nlopt.hpp
 
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/xsavecintrin.h:
@@ -14417,6 +14418,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/soft_margin_loss_backward_native.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/index_copy.h:
+
+/usr/local/include/nlopt.hpp:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/row_indices_copy_native.h:
 
