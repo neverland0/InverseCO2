@@ -4,7 +4,7 @@ import numpy as np
 np.set_printoptions(threshold = np.inf)
 files = sys.argv[1:]
 file_flux = '../flux.csv'
-file_prior = '../prior.csv'
+file_prior = '../prior_new.csv'
 obs_num = len(files)
 print(obs_num," .nc file has been read")
 # zhengzhou city area 5000 grids
