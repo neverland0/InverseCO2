@@ -1,0 +1,7 @@
+found minimum at f(39.8985 13.1535 9.82927 0.345701 1.6238 6.98633 ) = 24002.3
+optim times :555
+posterior sum = 15245.1
+prior sum = 2756.81
+true flux sum = 21054
+grids_rmse = 85.6141
+rmse_v = 14.4603

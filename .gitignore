@@ -45,9 +45,12 @@ optPara
 
 #txt
 H.txt
+H_v.txt
+obs_v.txt
 default.txt
 flux.txt
-shape.txt
 x_prior.txt
 y.txt
 posterior.txt
+_verify_hat.txt
+_verify.txt

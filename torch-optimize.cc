@@ -10,6 +10,8 @@
 #include <assert.h>
 #include <torch/torch.h>
 #include <ATen/ATen.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 using namespace std;
 using namespace Eigen;
@@ -17,8 +19,11 @@ using namespace Eigen;
 //#define MAXBUFSIZE  ((int) 1e6)
 #define MAXBUFSIZE  ((int) 1e9)
 #define R_COV exp_Covfun
-#define B_COV exp_Covfun
+#define B_COV balgo_Covfun
+#define STR1(R)  #R
+#define STR(R)  STR1(R)
 #define PI 3.1415926
+#define OBS 744
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> MatrixXdr;
 static int lon;
 static int lat;
@@ -30,8 +35,26 @@ static int obs_num;
 static int grids_num;
 MatrixXdr y;
 MatrixXdr H;
+MatrixXdr H_v;
+MatrixXdr obs_v;
 MatrixXdr x_prior;
 MatrixXdr flux;
+
+bool folderExists(const char* folderPath) {
+    struct stat info;
+    return (stat(folderPath, &info) == 0 );
+}
+
+bool createFolder(const char* folderPath) {
+    int status = mkdir(folderPath, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    if (status == 0) {
+        std::cout << "文件夹创建成功" << std::endl;
+        return true;
+    } else {
+        std::cerr << "无法创建文件夹" << std::endl;
+        return false;
+    }
+}
 
 
 class CovfunBase
@@ -72,13 +95,23 @@ class CovfunBase
                         if(isR)
                         {
                             r = abs(i-j);
+                            if(i/OBS == j/OBS)
+                            {
+                                Mat(i,j) = cov_pd(index,r,para);
+                                Mat(j,i) = Mat(i,j);
+                            }
+                            else
+                            {
+                                Mat(i,j) = 0;
+                                Mat(j,i) = Mat(i,j);
+                            }
                         }
                         else
                         {
                             r = norm(i,j,lon);
+                            Mat(i,j) = cov_pd(index,r,para);
+                            Mat(j,i) = Mat(i,j);
                         }
-                        Mat(i,j) = cov_pd(index,r,para);
-                        Mat(j,i) = Mat(i,j);
                     }
                 }
             }
@@ -136,6 +169,42 @@ class exp_Covfun : public CovfunBase
                return pow(sigma,2);
             }
             return pow(sigma,2) * exp(-r/l) * r * pow(l,-2);
+        }
+        return 0;
+    }
+
+};
+class balgo_Covfun : public CovfunBase
+{
+    public:
+    balgo_Covfun(vector<double> x, int n,bool isR):CovfunBase(x,n,isR)
+    {}
+    double cov_pd(int i,double r, vector<double> para) override
+    {
+        double sigma = para[0];
+        double l = para[1];
+        if(0==i)//cov fun
+        {
+            if(0==r)
+            {
+                return pow(sigma,2);
+            }
+            return pow(sigma,2)* (1+r/l) * exp(-r/l);
+        }
+        else if(1==i)//cov pd to para 1 -> sigma
+        {
+            if(0==r)
+            {
+                return sigma*2;
+            }
+            return sigma * 2 * (1+r/l) * exp(-r/l);
+        }else if(2==i)//cov pd to para 2 -> l
+        {
+            if(0==r)
+            {
+               return pow(sigma,2);
+            }
+            return pow(sigma,2) *(-r*pow(l,-2) * (1+r/l) * exp(-r/l) + (1+r/l)* exp(-r/l) * r * pow(l,-2));
         }
         return 0;
     }
@@ -285,6 +354,36 @@ class sin_Covfun : public CovfunBase
     double cov_pd(int i,double r, vector<double> para) override
     {
         double sigma = para[0];
+        if(0==i)//cov fun
+        {
+            if(0==r)
+            {
+                return pow(sigma,2);
+            }
+            return pow(sigma,2) * exp(-2*PI*PI*pow(r,2)/(24*24))*cos(2*PI*r/24);
+        }
+        else if(1==i)
+        {
+            if(0==r)
+            {
+                return sigma*2;
+            }
+            return sigma*2 * exp(-2*PI*PI*pow(r,2)/(24*24))*cos(2*PI*r/24);
+
+        }
+        return 0;
+    }
+
+};
+/*
+class sin_Covfun : public CovfunBase
+{
+    public:
+    sin_Covfun(vector<double> x, int n,bool isR):CovfunBase(x,n,isR)
+    {}
+    double cov_pd(int i,double r, vector<double> para) override
+    {
+        double sigma = para[0];
         double l = para[1];
         if(0==i)//cov fun
         {
@@ -313,6 +412,7 @@ class sin_Covfun : public CovfunBase
     }
 
 };
+*/
 class sqr_exp_sin_Covfun : public CovfunBase
 {
     public:
@@ -508,14 +608,46 @@ void gen_cov_matrix(MatrixXdr &Mat, double sigma, double l,cf_pointer cfp, bool 
 
 void eigen2torch(MatrixXdr &eigenMat, torch::Tensor &torchMat)
 {
-    vector<float> data(eigenMat.data(), eigenMat.data() + eigenMat.size());
+    //vector<float> data(eigenMat.data(), eigenMat.data() + eigenMat.size());
+    vector<double> data(eigenMat.data(), eigenMat.data() + eigenMat.size());
     int rows = eigenMat.rows();
     int cols = eigenMat.cols();
-    torchMat = torch::from_blob(data.data(), {rows, cols}).toType(torch::kFloat32);
+    torchMat = torch::from_blob(data.data(), {rows, cols},torch::kDouble);
+    //torchMat = torch::from_blob(data.data(), {rows, cols}).toType(torch::kFloat);
     torch::Device device = torch::kCUDA;
     torchMat = torchMat.to(device);
 
     return;
+}
+
+void gpu2cpu(torch::Tensor &torchMat)
+{
+    torch::Device device = torch::kCPU;
+    torchMat = torchMat.to(device);
+    return;
+}
+void cpu2gpu(torch::Tensor &torchMat)
+{
+    torch::Device device = torch::kCUDA;
+    torchMat = torchMat.to(device);
+    return;
+}
+
+void tensor2file(torch::Tensor &torchMat,string filename)
+{
+    if(torchMat.device().is_cuda())
+    {
+        gpu2cpu(torchMat);
+    }
+    std::ofstream file(filename);
+    if(!file.is_open())
+    {
+        std::cerr << "Failed to open the file for writing." << std::endl;
+        return;
+    }
+    file << torchMat << endl;
+    file.close();
+
 }
 
 double likehood(const std::vector<double> &x, std::vector<double> &grad, void *data)
@@ -567,7 +699,7 @@ double likehood(const std::vector<double> &x, std::vector<double> &grad, void *d
     torch::Tensor _R_theta = torch::zeros({R_theta.rows(),R_theta.cols()}, torch::kDouble);
     eigen2torch(R_theta, _R_theta);
 
-    torch::Tensor _B_theta = torch::zeros({B_theta.rows(),B_theta.cols()});
+    torch::Tensor _B_theta = torch::zeros({B_theta.rows(),B_theta.cols()},torch::kDouble);
     eigen2torch(B_theta, _B_theta);
     /*
     torch::Tensor _R_o = torch::zeros({R_o.rows(),R_o.cols()}, torch::kDouble);
@@ -579,7 +711,7 @@ double likehood(const std::vector<double> &x, std::vector<double> &grad, void *d
     torch::Tensor _B_l = torch::zeros({B_l.rows(),B_l.cols()}, torch::kDouble);
     eigen2torch(B_l, _B_l);
     */
-    torch::Tensor _H = torch::zeros({H.rows(),H.cols()});
+    torch::Tensor _H = torch::zeros({H.rows(),H.cols()},torch::kDouble);
     eigen2torch(H, _H);
 
     torch::Tensor _y = torch::zeros({y.rows(),y.cols()}, torch::kDouble);
@@ -602,7 +734,7 @@ double likehood(const std::vector<double> &x, std::vector<double> &grad, void *d
     torch::Tensor _term1 = _D_inv - torch::mm(_alpha , _alpha.t());
 
     if (grad.size()>0) {
-    //cout << "test1" << endl;
+    cout << "test1" << endl;
     for (int i = 0; i < p1_num; ++i) {
         torch::Tensor _R = torch::zeros({R_theta.rows(),R_theta.cols()}, torch::kDouble);
         eigen2torch(*(cfb_r->gen_covpd_fun(i)), _R);
@@ -646,6 +778,8 @@ int main(int argc, char *argv[])
     string pre = "/home/akagi/InverseCO2/data/hhsd/";
     y = readMatrix(pre + "y.txt");
     H = readMatrix(pre + "H.txt");
+    H_v = readMatrix(pre + "H_v.txt");
+    obs_v = readMatrix(pre + "obs_v.txt");
     x_prior = readMatrix(pre + "x_prior.txt");
     flux = readMatrix(pre + "flux.txt");
     MatrixXdr shape = readMatrix(pre + "shape.txt");
@@ -655,7 +789,7 @@ int main(int argc, char *argv[])
     //myData md = {y,H,x_prior,shape};
     //myData *md_p = &md; 
     vector<double> lb(4, 0 ); //lower bounds
-    vector<double> ub={40.0,20.0, 40.0,20.0}; //upper bounds for gamma-exp
+    vector<double> ub={50.0,20.0, 50.0,20.0}; //upper bounds for gamma-exp
    // vector<double> ub={20.0, 40.0, 20.0, 40.0, 2.0}; //upper bounds for rational-quad
     vector<double> x={20.0,10.0,20.0,10.0};
     double minf;
@@ -675,7 +809,8 @@ int main(int argc, char *argv[])
     opt.set_min_objective(likehood,NULL);
      
     //nlopt_set_xtol_rel(opt, 1e-4);
-    opt.set_maxtime(600);
+    int mins = 20;
+    opt.set_maxtime(60*mins);
      
     // initial guess
      
@@ -702,16 +837,24 @@ int main(int argc, char *argv[])
     MatrixXdr &B_theta = *(cfb_b->gen_covpd_fun(0));
     torch::Tensor _R_theta = torch::zeros({R_theta.rows(),R_theta.cols()}, torch::kDouble);
     eigen2torch(R_theta, _R_theta);
-
-    torch::Tensor _B_theta = torch::zeros({B_theta.rows(),B_theta.cols()});
+/*
+    gpu2cpu(_R_theta);
+    cout << _R_theta << endl;
+    cpu2gpu(_R_theta);
+*/
+    torch::Tensor _B_theta = torch::zeros({B_theta.rows(),B_theta.cols()},torch::kDouble);
     eigen2torch(B_theta, _B_theta);
     
-    torch::Tensor _y = torch::zeros({y.rows(),y.cols()});
-    torch::Tensor _H = torch::zeros({H.rows(),H.cols()});
-    torch::Tensor _x_prior = torch::zeros({x_prior.rows(),x_prior.cols()});
-    torch::Tensor _flux = torch::zeros({flux.rows(),flux.cols()});
+    torch::Tensor _y = torch::zeros({y.rows(),y.cols()},torch::kDouble);
+    torch::Tensor _H = torch::zeros({H.rows(),H.cols()},torch::kDouble);
+    torch::Tensor _H_v = torch::zeros({H_v.rows(),H_v.cols()},torch::kDouble);
+    torch::Tensor _obs_v = torch::zeros({obs_v.rows(),obs_v.cols()},torch::kDouble);
+    torch::Tensor _x_prior = torch::zeros({x_prior.rows(),x_prior.cols()},torch::kDouble);
+    torch::Tensor _flux = torch::zeros({flux.rows(),flux.cols()},torch::kDouble);
     eigen2torch(y, _y);
     eigen2torch(H, _H);
+    eigen2torch(H_v, _H_v);
+    eigen2torch(obs_v, _obs_v);
     eigen2torch(x_prior, _x_prior);
     eigen2torch(flux, _flux);
 
@@ -724,6 +867,12 @@ int main(int argc, char *argv[])
     torch::Tensor _x_posterior= _x_prior + torch::mm(torch::mm(torch::mm(_B_theta , _H.t()) , _D_inv) , _y_Hxp);
     double posterior = torch::sum(_x_posterior).item().to<double>();
 
+    
+    torch::Tensor _diff = (_x_posterior - _flux).view({-1});
+
+    double sse = torch::dot(_diff,_diff).item().to<double>();
+    double rmse = sqrt(sse/grids_num);
+/*
     torch::Tensor _y_hat = torch::mm(_H , _x_posterior);
     torch::Tensor _y_real = torch::mm(_H , _flux);
     torch::Tensor _y_diff = (_y_real - _y_hat).view({-1});
@@ -736,13 +885,65 @@ int main(int argc, char *argv[])
     double sst = torch::dot(st,st).item().to<double>();
 
     double r2 = 1-sse/sst;
+*/
+    torch::Tensor _verify_hat = torch::mm(_H_v,_x_posterior);
+    torch::Tensor _verify_prior = torch::mm(_H_v,_x_prior);
+    torch::Tensor _verify = _obs_v;
+    torch::Tensor _v_diff = (_verify_hat - _verify).view({-1});
+
+    double sse_v = torch::dot(_v_diff,_v_diff).item().to<double>();
+    double rmse_v = sqrt(sse_v/OBS);
+    string r_str = STR(R_COV);
+    string b_str = STR(B_COV);
+    string folder = r_str + "-" + b_str + "-" + std::to_string(lon) + "_" + std::to_string(lat) + "-" +std::to_string(obs_num);
+    string pre2 = "/home/akagi/InverseCO2/build/" + folder;
+    if(!folderExists(pre2.c_str()))
+    {
+        createFolder(pre2.c_str());
+    }
+    pre2 = pre2 + "/";
+    for (int i = 1; i < 10; ++i) {
+        if(!folderExists((pre2+std::to_string(i)).c_str()))
+        {
+            pre2 = pre2+std::to_string(i);
+            createFolder(pre2.c_str());
+            pre2 = pre2 + "/";
+            break;
+        }
+    }
+    tensor2file(_verify_hat,pre2+"_verify_hat.txt");
+    tensor2file(_verify_prior,pre2+"_verify_prior.txt");
+    tensor2file(_verify,pre2+"_verify.txt");
+    tensor2file(_x_posterior,pre2+"_x_posterior.txt");
+    tensor2file(_x_prior,pre2+"_x_prior.txt");
+    tensor2file(_flux,pre2+"_flux.txt");
+    writeMatrix(shape,(pre2+"shape.txt").c_str());
     
 
     cout << "posterior sum = " << posterior << endl;
     cout << "prior sum = " << x_prior.sum() << endl;
     cout << "true flux sum = " << flux.sum() << endl;
-    cout << "rmse = " << rmse << endl;
-    cout << "r2 = " << r2 << endl;
+    cout << "grids_rmse = " << rmse << endl;
+    cout << "rmse_v = " << rmse_v << endl;
+    std::ofstream file(pre2+"result.txt");
+    if(!file.is_open())
+    {
+        std::cerr << "Failed to open the file for writing." << std::endl;
+        return 0;
+    }
+        file << "found minimum at f(" ;
+        for(auto i:x)
+        {
+            file << i << " ";
+        }
+        file << ") = " << minf << endl;
+        file << "optim times :" << counts << endl;
+    file << "posterior sum = " << posterior << endl;
+    file << "prior sum = " << x_prior.sum() << endl;
+    file << "true flux sum = " << flux.sum() << endl;
+    file << "grids_rmse = " << rmse << endl;
+    file << "rmse_v = " << rmse_v << endl;
+    file.close();
 /*
 */
 

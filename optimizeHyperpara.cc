@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
     nlopt_set_min_objective(opt, likehood,md_p);
      
     //nlopt_set_xtol_rel(opt, 1e-4);
-    nlopt_set_maxtime(opt, 60);
+    nlopt_set_maxtime(opt, 180);
      
     // initial guess
     double x[4]={10.0,20.0,10.0,20.0};

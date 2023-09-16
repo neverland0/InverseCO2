@@ -4392,8 +4392,12 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
   /home/akagi/.local/lib/python3.10/site-packages/torch/include/torch/custom_class_detail.h \
   /home/akagi/.local/lib/python3.10/site-packages/torch/include/torch/library.h \
   /usr/include/alloca.h \
+  /usr/include/asm-generic/bitsperlong.h \
   /usr/include/asm-generic/errno-base.h \
   /usr/include/asm-generic/errno.h \
+  /usr/include/asm-generic/int-ll64.h \
+  /usr/include/asm-generic/posix_types.h \
+  /usr/include/asm-generic/types.h \
   /usr/include/assert.h \
   /usr/include/c++/11/algorithm \
   /usr/include/c++/11/array \
@@ -4768,8 +4772,13 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
   /usr/include/inttypes.h \
   /usr/include/libintl.h \
   /usr/include/limits.h \
+  /usr/include/linux/close_range.h \
   /usr/include/linux/errno.h \
   /usr/include/linux/limits.h \
+  /usr/include/linux/posix_types.h \
+  /usr/include/linux/stat.h \
+  /usr/include/linux/stddef.h \
+  /usr/include/linux/types.h \
   /usr/include/locale.h \
   /usr/include/math.h \
   /usr/include/pthread.h \
@@ -4781,20 +4790,29 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
   /usr/include/string.h \
   /usr/include/strings.h \
   /usr/include/time.h \
+  /usr/include/unistd.h \
   /usr/include/wchar.h \
   /usr/include/wctype.h \
+  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
   /usr/include/x86_64-linux-gnu/asm/errno.h \
+  /usr/include/x86_64-linux-gnu/asm/posix_types.h \
+  /usr/include/x86_64-linux-gnu/asm/posix_types_64.h \
+  /usr/include/x86_64-linux-gnu/asm/types.h \
   /usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h \
   /usr/include/x86_64-linux-gnu/bits/byteswap.h \
+  /usr/include/x86_64-linux-gnu/bits/confname.h \
   /usr/include/x86_64-linux-gnu/bits/cpu-set.h \
   /usr/include/x86_64-linux-gnu/bits/endian.h \
   /usr/include/x86_64-linux-gnu/bits/endianness.h \
+  /usr/include/x86_64-linux-gnu/bits/environments.h \
   /usr/include/x86_64-linux-gnu/bits/errno.h \
   /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
   /usr/include/x86_64-linux-gnu/bits/floatn.h \
   /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h \
   /usr/include/x86_64-linux-gnu/bits/fp-fast.h \
   /usr/include/x86_64-linux-gnu/bits/fp-logb.h \
+  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
   /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
   /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
   /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
@@ -4807,18 +4825,23 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
   /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
   /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
   /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
   /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
   /usr/include/x86_64-linux-gnu/bits/sched.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
   /usr/include/x86_64-linux-gnu/bits/setjmp.h \
+  /usr/include/x86_64-linux-gnu/bits/stat.h \
+  /usr/include/x86_64-linux-gnu/bits/statx-generic.h \
+  /usr/include/x86_64-linux-gnu/bits/statx.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
+  /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
   /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
   /usr/include/x86_64-linux-gnu/bits/time.h \
   /usr/include/x86_64-linux-gnu/bits/time64.h \
@@ -4843,6 +4866,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
   /usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h \
@@ -4852,6 +4877,7 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
   /usr/include/x86_64-linux-gnu/bits/typesizes.h \
   /usr/include/x86_64-linux-gnu/bits/uintn-identity.h \
   /usr/include/x86_64-linux-gnu/bits/uio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
   /usr/include/x86_64-linux-gnu/bits/waitflags.h \
   /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
   /usr/include/x86_64-linux-gnu/bits/wchar.h \
@@ -4878,6 +4904,7 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
   /usr/include/x86_64-linux-gnu/sys/cdefs.h \
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/sys/single_threaded.h \
+  /usr/include/x86_64-linux-gnu/sys/stat.h \
   /usr/include/x86_64-linux-gnu/sys/types.h \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/adxintrin.h \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/ammintrin.h \
@@ -5087,6 +5114,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /usr/include/x86_64-linux-gnu/bits/waitflags.h:
 
+/usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/wint_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
@@ -5125,6 +5154,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
 
+/usr/include/x86_64-linux-gnu/bits/stat.h:
+
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
 /usr/include/x86_64-linux-gnu/bits/select.h:
@@ -5147,11 +5178,21 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /usr/include/x86_64-linux-gnu/bits/libc-header-start.h:
 
+/usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
+
+/usr/include/x86_64-linux-gnu/bits/getopt_core.h:
+
+/usr/include/x86_64-linux-gnu/bits/environments.h:
+
 /usr/include/x86_64-linux-gnu/bits/endian.h:
 
 /usr/include/x86_64-linux-gnu/bits/cpu-set.h:
 
 /usr/include/x86_64-linux-gnu/bits/byteswap.h:
+
+/usr/include/x86_64-linux-gnu/asm/types.h:
+
+/usr/include/x86_64-linux-gnu/asm/posix_types_64.h:
 
 /usr/include/wctype.h:
 
@@ -5166,6 +5207,10 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /usr/include/pthread.h:
 
 /usr/include/locale.h:
+
+/usr/include/linux/stddef.h:
+
+/usr/include/linux/posix_types.h:
 
 /usr/include/limits.h:
 
@@ -5486,6 +5531,10 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /usr/include/c++/11/atomic:
 
 /usr/include/c++/11/array:
+
+/usr/include/asm-generic/types.h:
+
+/usr/include/asm-generic/posix_types.h:
 
 /usr/include/asm-generic/errno.h:
 
@@ -6600,6 +6649,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/softplus_backward_native.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/softplus_backward.h:
+
+/usr/include/x86_64-linux-gnu/bits/confname.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/softplus.h:
 
@@ -8093,6 +8144,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/linear_ops.h:
 
+/usr/include/x86_64-linux-gnu/bits/posix_opt.h:
+
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/linear_native.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/not_equal_native.h:
@@ -8543,6 +8596,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_transform_bias_rescale_qkv_ops.h:
 
+/usr/include/x86_64-linux-gnu/bits/statx-generic.h:
+
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_conv_depthwise2d_native.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_transform_bias_rescale_qkv_native.h:
@@ -8566,6 +8621,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_to_cpu.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_to_copy_native.h:
+
+/usr/include/linux/types.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_to_copy.h:
 
@@ -9149,6 +9206,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/hinge_embedding_loss.h:
 
+/usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
+
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/to_dense.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_unique2.h:
@@ -9254,6 +9313,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_mps_convolution_transpose_ops.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/le_meta.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_statx.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/diagonal_copy.h:
 
@@ -9505,6 +9566,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_foreach_expm1_native.h:
 
+/usr/include/linux/stat.h:
+
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_linalg_check_errors_ops.h:
 
 /usr/include/eigen3/Eigen/src/Core/util/ReshapedHelper.h:
@@ -9622,6 +9685,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_copy_from.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_values_copy.h:
+
+/usr/include/asm-generic/bitsperlong.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_nested_view_from_buffer.h:
 
@@ -10350,6 +10415,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_addmm_activation_meta.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/Config.h:
+
+/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_foreach_zero_native.h:
 
@@ -11359,6 +11426,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_fake_quantize_learnable_per_tensor_affine.h:
 
+/usr/include/x86_64-linux-gnu/sys/stat.h:
+
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/slice_scatter_native.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/resize_ops.h:
@@ -11505,6 +11574,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/amin_meta.h:
 
+/usr/include/x86_64-linux-gnu/asm/posix_types.h:
+
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/core/rref_interface.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_sparse_csr_tensor_unsafe_ops.h:
@@ -11599,6 +11670,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/elu_native.h:
 
+/usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h:
+
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_embedding_bag_dense_backward_native.h:
 
 /usr/include/c++/11/bits/invoke.h:
@@ -11690,6 +11763,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/crow_indices_ops.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_fake_quantize_learnable_per_channel_affine_native.h:
+
+/usr/include/asm-generic/int-ll64.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/rad2deg.h:
 
@@ -12237,6 +12312,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/f16cintrin.h:
 
+/usr/include/unistd.h:
+
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/fbgemm_pack_quantized_matrix_ops.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/affine_grid_generator_ops.h:
@@ -12496,6 +12573,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/as_strided_copy_native.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/as_strided_native.h:
+
+/usr/include/linux/close_range.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/_foreach_lerp.h:
 
@@ -13414,6 +13493,8 @@ CMakeFiles/torch-optim.dir/torch-optimize.cc.o: /home/akagi/InverseCO2/torch-opt
 /usr/include/c++/11/ostream:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/ATen/ops/cudnn_grid_sampler_native.h:
+
+/usr/include/x86_64-linux-gnu/bits/statx.h:
 
 /home/akagi/.local/lib/python3.10/site-packages/torch/include/torch/csrc/api/include/torch/data/transforms/collate.h:
 
